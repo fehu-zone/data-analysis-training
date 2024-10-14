@@ -138,3 +138,89 @@ df_poly = pd.DataFrame(poly_features, columns=poly.get_feature_names_out(numeric
 df = pd.concat([df, df_poly], axis=1)
 
 print(df.head())
+
+Q1 = df['Price'].quantile(0.25)
+Q3 = df['Price'].quantile(0.75)
+IQR = Q3 - Q1
+
+lower_bound = Q1 - 1.5 * IQR
+upper_bound = Q3 + 1.5 * IQR
+
+outliers_iqr = df[(df['Price'] < lower_bound) | (df['Price'] > upper_bound)]
+
+# Z-skor yöntemi ile aykırı değerleri tespit etme
+z_scores = (df['Price'] - df['Price'].mean()) / df['Price'].std()
+outliers_z = df[np.abs(z_scores) > 3]
+
+# Aykırı değerleri yazdırma
+print("IQR Yöntemi ile Aykırı Değerler:")
+print(outliers_iqr)
+
+print("\nZ-Skor Yöntemi ile Aykırı Değerler:")
+print(outliers_z)
+
+# IQR (Interquartile Range) Yöntemi ile Aykırı Değerleri Tespit Etme
+
+# 'Area', 'Bedrooms' ve 'Bathrooms' sütunları üzerinde işlem yapıyoruz
+for col in ['Area', 'Bedrooms', 'Bathrooms']:
+    
+    # İlk çeyreklik değer (Q1): Verilerin %25'inin altında kalan değer
+    Q1 = df[col].quantile(0.25)
+    
+    # Üçüncü çeyreklik değer (Q3): Verilerin %75'inin altında kalan değer
+    Q3 = df[col].quantile(0.75)
+    
+    # IQR (Interquartile Range): Q3 - Q1 farkı, çeyreklikler arası yayılımı temsil eder
+    IQR = Q3 - Q1
+
+    # Alt sınır: Q1 - 1.5 * IQR. Bu sınırın altındaki değerler aykırı kabul edilir
+    lower_bound = Q1 - 1.5 * IQR
+    
+    # Üst sınır: Q3 + 1.5 * IQR. Bu sınırın üstündeki değerler aykırı kabul edilir
+    upper_bound = Q3 + 1.5 * IQR
+
+    # Aykırı değerler: Belirlenen alt ve üst sınırların dışındaki değerler
+    outliers_iqr = df[(df[col] < lower_bound) | (df[col] > upper_bound)]
+    
+    # Aykırı değerleri yazdır
+    print(f"IQR Yöntemi ile {col} sütunundaki Aykırı Değerler:")
+    print(outliers_iqr)
+
+# Z-Skor Yöntemi ile Aykırı Değerleri Tespit Etme
+
+# 'Area', 'Bedrooms' ve 'Bathrooms' sütunları üzerinde işlem yapıyoruz
+for col in ['Area', 'Bedrooms', 'Bathrooms']:
+    
+    # Z-skoru hesaplama: Verinin ortalamadan kaç standart sapma uzaklıkta olduğunu gösterir
+    z_scores = (df[col] - df[col].mean()) / df[col].std()
+    
+    # Z-skoru 3'ten büyük olan (veya -3'ten küçük olan) değerler aykırı olarak kabul edilir
+    outliers_z = df[np.abs(z_scores) > 3]
+    
+    # Aykırı değerleri yazdır
+    print(f"Z-Skor Yöntemi ile {col} sütunundaki Aykırı Değerler:")
+    print(outliers_z)
+
+# Sadece sayısal sütunları seçelim
+numerical_cols = df.select_dtypes(include=['float64', 'int64']).columns
+
+# Korelasyon Matrisi
+plt.figure(figsize=(10, 8))
+correlation_matrix = df[numerical_cols].corr()
+
+# Isı Haritası ile Görselleştirme
+sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', linewidths=0.5)
+plt.show()
+
+from sklearn.preprocessing import PolynomialFeatures
+
+# Polinom özellikler oluşturma
+poly = PolynomialFeatures(degree=2, include_bias=False)
+numerical_cols = ['Area', 'Bedrooms', 'Bathrooms']
+poly_features = poly.fit_transform(df[numerical_cols])
+
+# Yeni özellikleri dataframe'e ekleme
+df_poly = pd.DataFrame(poly_features, columns=poly.get_feature_names_out(numerical_cols))
+df = pd.concat([df, df_poly], axis=1)
+
+print(df.head())
