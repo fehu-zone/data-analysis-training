@@ -13,6 +13,17 @@ from sklearn.metrics import mean_squared_error, r2_score
 csv_file = 'data/House Price Prediction Dataset.csv'
 df = pd.read_csv(csv_file)
 
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from scipy import stats
+from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import OneHotEncoder, PolynomialFeatures  # Check this part
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error, r2_score
+
 # Check for missing values
 missing_data = df.isnull().sum()
 print(missing_data[missing_data > 0])
@@ -60,3 +71,70 @@ print(f"Independent T-Test - Statistic: {t_statistic}, P-value: {p_value}")
 # 3. ANOVA (F-Test): Compare 'Area', 'Bedrooms', and 'Bathrooms' columns
 f_statistic, p_value = stats.f_oneway(df['Area'], df['Bedrooms'], df['Bathrooms'])
 print(f"ANOVA (F-Test) - Statistic: {f_statistic}, P-value: {p_value}")
+
+# IQR (Interquartile Range) Method to Detect Outliers
+Q1 = df['Price'].quantile(0.25)
+Q3 = df['Price'].quantile(0.75)
+IQR = Q3 - Q1
+
+lower_bound = Q1 - 1.5 * IQR
+upper_bound = Q3 + 1.5 * IQR
+
+outliers_iqr = df[(df['Price'] < lower_bound) | (df['Price'] > upper_bound)]
+
+# Detect outliers using Z-score method
+z_scores = (df['Price'] - df['Price'].mean()) / df['Price'].std()
+outliers_z = df[np.abs(z_scores) > 3]
+
+# Print outliers
+print("Outliers detected using IQR method:")
+print(outliers_iqr)
+
+print("\nOutliers detected using Z-score method:")
+print(outliers_z)
+
+# IQR Method for Outlier Detection in 'Area', 'Bedrooms', and 'Bathrooms' Columns
+for col in ['Area', 'Bedrooms', 'Bathrooms']:
+    Q1 = df[col].quantile(0.25)
+    Q3 = df[col].quantile(0.75)
+    IQR = Q3 - Q1
+
+    lower_bound = Q1 - 1.5 * IQR
+    upper_bound = Q3 + 1.5 * IQR
+
+    outliers_iqr = df[(df[col] < lower_bound) | (df[col] > upper_bound)]
+    
+    # Print outliers
+    print(f"Outliers in {col} column detected using IQR method:")
+    print(outliers_iqr)
+
+# Detect outliers using Z-score Method in 'Area', 'Bedrooms', and 'Bathrooms' Columns
+for col in ['Area', 'Bedrooms', 'Bathrooms']:
+    z_scores = (df[col] - df[col].mean()) / df[col].std()
+    outliers_z = df[np.abs(z_scores) > 3]
+    
+    # Print outliers
+    print(f"Outliers in {col} column detected using Z-score method:")
+    print(outliers_z)
+
+# Select only numerical columns
+numerical_cols = df.select_dtypes(include=['float64', 'int64']).columns
+
+# Correlation Matrix
+plt.figure(figsize=(10, 8))
+correlation_matrix = df[numerical_cols].corr()
+
+# Visualize with Heatmap
+sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', linewidths=0.5)
+plt.show()
+
+# Polynomial Features Creation
+poly = PolynomialFeatures(degree=2, include_bias=False)
+numerical_cols = ['Area', 'Bedrooms', 'Bathrooms']
+poly_features = poly.fit_transform(df[numerical_cols])
+
+# Add new features to the dataframe
+df_poly = pd.DataFrame(poly_features, columns=poly.get_feature_names_out(numerical_cols))
+df = pd.concat([df, df_poly], axis=1)
+
+print(df.head())
