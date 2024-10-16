@@ -10,6 +10,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
 
+
 csv_file = 'data/House Price Prediction Dataset.csv'
 df = pd.read_csv(csv_file)
 
@@ -212,7 +213,6 @@ correlation_matrix = df[numerical_cols].corr()
 sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', linewidths=0.5)
 plt.show()
 
-from sklearn.preprocessing import PolynomialFeatures
 
 # Polinom özellikler oluşturma
 poly = PolynomialFeatures(degree=2, include_bias=False)
@@ -224,3 +224,70 @@ df_poly = pd.DataFrame(poly_features, columns=poly.get_feature_names_out(numeric
 df = pd.concat([df, df_poly], axis=1)
 
 print(df.head())
+
+# Z Test - Is the average price 500,000?
+# Null Hypothesis: Average 500,000
+# Alternative Hypothesis: Average not 500,000
+
+# Get the 'Price' column
+house_prices = df['Price']  # Price data
+
+# Calculate the sample mean and standard deviation
+mean_price = np.mean(house_prices)
+std_price = np.std(house_prices)
+
+# Set the population mean to 500,000
+pop_mean = 500000
+
+# Calculate the z-score and p-value
+z_score, p_value = stats.ttest_1samp(house_prices, pop_mean)
+
+# Print the results
+print(f"Z-Score: {z_score}, P-value: {p_value}")
+
+# Interpretation of results:
+# Evaluating the hypothesis based on the p-value:
+# If the p-value is less than 0.05, the null hypothesis is rejected, and it is concluded that the average price is not 500,000.
+# If the p-value is greater than 0.05, the null hypothesis is accepted, and it is assumed that the average price is 500,000.
+
+if p_value < 0.05:
+    print("Result is significant: The average price is different from 500,000.")
+    # Comment:
+    # Since the z-score is 6.10 and the p-value is 1.31e-09, we conclude that the average price is not 500,000.
+    # Such a small p-value strongly indicates that the average price in the data is significantly different from 500,000.
+else:
+    print("Result is not significant: The average price is 500,000.")
+    # Comment:
+    # If the p-value had been greater than 0.05, the average price would have been accepted as 500,000.
+
+
+
+# ANOVA Test - Let's compare prices in different locations.
+# Null Hypothesis: The average prices of all locations are equal.
+# Alternative Hypothesis: At least one location's average price is different from the others.
+
+# Let's group the prices by different locations
+# For example, we are comparing different cities in the 'Location' column
+locations = df['Location'].unique()
+
+# Separate prices by location and store them in a list
+grouped_prices = [df[df['Location'] == loc]['Price'] for loc in locations]
+
+# Perform ANOVA test
+f_stat, p_value = stats.f_oneway(*grouped_prices)
+
+# Print the results
+print(f"F-Stat: {f_stat}, P-value: {p_value}")
+
+# Interpretation of results:
+# Evaluating the hypothesis based on the p-value:
+# If the p-value is less than 0.05, the null hypothesis is rejected, and at least one location's average price is different from the others.
+if p_value < 0.05:
+    print("Result is significant: At least one location's average price is different from the others.")
+    # Comment:
+    # There is a direct relationship between the F-statistic and the p-value.
+    # If the p-value is less than 0.05, it is concluded that at least one location's average price is different from the others.
+else:
+    print("Result is not significant: The average prices of all locations are equal.")
+    # Comment:
+    # If the p-value is greater than 0.05, we accept that the average prices of all locations are equal.
