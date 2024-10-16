@@ -291,3 +291,72 @@ else:
     print("Result is not significant: The average prices of all locations are equal.")
     # Comment:
     # If the p-value is greater than 0.05, we accept that the average prices of all locations are equal.
+    
+
+# ANOVA Testi - Farklı lokasyonlardaki fiyatları karşılaştıralım.
+# Null Hipotez: Tüm lokasyonların ortalama fiyatları eşittir.
+# Alternatif Hipotez: En az bir lokasyonun ortalama fiyatı diğerlerinden farklıdır.
+
+# Farklı lokasyonlardaki fiyatları gruplara ayıralım
+# Örnek olarak, 'Location' sütunundaki farklı şehirleri karşılaştırıyoruz
+locations = df['Location'].unique()
+
+# Fiyatları lokasyonlara göre ayırıp listede tutalım
+grouped_prices = [df[df['Location'] == loc]['Price'] for loc in locations]
+
+# ANOVA testi yapalım
+f_stat, p_value = stats.f_oneway(*grouped_prices)
+
+# Sonuçları yazdıralım
+print(f"F-Stat: {f_stat}, P-değeri: {p_value}")
+
+# Sonuç yorumlaması:
+# P-değerine göre hipotezi değerlendiriyoruz:
+# Eğer p-değeri 0.05'ten küçükse, null hipotez reddedilir ve en az bir lokasyonun ortalama fiyatı diğerlerinden farklıdır.
+if p_value < 0.05:
+    print("Sonuç anlamlı: En az bir lokasyonun ortalama fiyatı diğerlerinden farklıdır.")
+    # Yorum:
+    # F skoru ile p-değeri arasında doğrudan bir ilişki vardır.
+    # Eğer p-değeri 0.05'ten küçükse, en az bir lokasyonun fiyat ortalamasının diğerlerinden farklı olduğu sonucuna varılır.
+else:
+    print("Sonuç anlamlı değil: Tüm lokasyonların ortalama fiyatları birbirine eşittir.")
+    # Yorum:
+    # Eğer p-değeri 0.05'ten büyükse, tüm lokasyonların ortalama fiyatlarının birbirine eşit olduğunu kabul ederiz.
+
+
+# Pearson korelasyonu hesapla (Price ile Area arasında)
+pearson_corr, pearson_p_value = stats.pearsonr(df['Price'], df['Area'])
+
+# Sonuçları yazdır
+print(f"Pearson Korelasyon Katsayısı: {pearson_corr}, P-değeri: {pearson_p_value}")
+
+# Yorumlama
+if pearson_p_value < 0.05:
+    print("Sonuç anlamlı: Price ve Area arasında istatistiksel olarak anlamlı bir ilişki vardır.")
+else:
+    print("Sonuç anlamlı değil: Price ve Area arasında istatistiksel olarak anlamlı bir ilişki yoktur.")
+
+# Spearman Korelasyonu (Price ve Area)
+spearman_corr, spearman_p_value = stats.spearmanr(df['Price'], df['Area'])
+
+# Sonuçları yazdır
+print(f"Spearman Korelasyon Katsayısı: {spearman_corr}, P-değeri: {spearman_p_value}")
+
+# Yorumlama
+if spearman_p_value < 0.05:
+    print("Sonuç anlamlı: Price ve Area arasında istatistiksel olarak anlamlı bir monotonik ilişki vardır.")
+else:
+    print("Sonuç anlamlı değil: Price ve Area arasında istatistiksel olarak anlamlı bir monotonik ilişki yoktur.")
+
+
+# Kendall's Tau Korelasyonu (Price ve Area)
+kendall_corr, kendall_p_value = stats.kendalltau(df['Price'], df['Area'])
+
+# Sonuçları yazdır
+print(f"Kendall's Tau Korelasyon Katsayısı: {kendall_corr}, P-değeri: {kendall_p_value}")
+
+# Yorumlama
+if kendall_p_value < 0.05:
+    print("Sonuç anlamlı: Price ve Area arasında istatistiksel olarak anlamlı bir monotonik ilişki vardır.")
+else:
+    print("Sonuç anlamlı değil: Price ve Area arasında istatistiksel olarak anlamlı bir monotonik ilişki yoktur.")
